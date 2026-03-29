@@ -38,9 +38,13 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Net" />
     <Reference Include="System.Net.Http" />
+    <Reference Include="System.ServiceProcess" />
+    <Reference Include="System.Configuration.Install" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
+    <Compile Include="FileWatcherService.cs" />
+    <Compile Include="ProjectInstaller.cs" />
     <Compile Include="Configuration\WatcherConfigSection.cs" />
     <Compile Include="Configuration\WatchedDirectoryElement.cs" />
     <Compile Include="Configuration\WatchedDirectoryCollection.cs" />

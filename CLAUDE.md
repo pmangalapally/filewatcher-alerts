@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-**filewatcher-alerts** is a .NET Framework 4.8 console application that monitors Windows shared directories (UNC paths) and NAS folders for file availability. It polls configured directories on a timer, tracks file stability (file present and unchanged for a configurable duration), and sends email alerts when files become stable.
+**filewatcher-alerts** is a .NET Framework 4.8 application that monitors Windows shared directories (UNC paths) and NAS folders for file availability. It can run as a **console application** or as a **Windows Service**. It polls configured directories on a timer, tracks file stability (file present and unchanged for a configurable duration), and sends email alerts when files become stable.
 
 Repository: `pmangalapally/filewatcher-alerts`
 
@@ -15,7 +15,9 @@ filewatcher-alerts/
 └── FileWatcherAlerts/                     # Main project
     ├── FileWatcherAlerts.csproj           # Project file (.NET Framework 4.8)
     ├── App.config                         # Application configuration (directories, SMTP, polling)
-    ├── Program.cs                         # Entry point — config loading, polling loop, shutdown
+    ├── Program.cs                         # Entry point — detects console vs service mode
+    ├── FileWatcherService.cs              # ServiceBase implementation + console runner
+    ├── ProjectInstaller.cs                # InstallUtil installer (service name, account, start type)
     ├── Configuration/
     │   ├── WatcherConfigSection.cs        # Custom ConfigurationSection + SmtpElement
     │   ├── WatchedDirectoryElement.cs     # Per-directory config (path, pattern, stability, recipients)
@@ -43,11 +45,24 @@ filewatcher-alerts/
 # Build (Visual Studio or MSBuild)
 msbuild FileWatcherAlerts.sln /p:Configuration=Release
 
-# Run
+# Run as console (for development/debugging)
 FileWatcherAlerts\bin\Release\FileWatcherAlerts.exe
-
 # Stop with Ctrl+C (graceful shutdown)
 ```
+
+### Install as Windows Service
+
+```cmd
+:: Install (run from an elevated/Administrator command prompt)
+C:\Windows\Microsoft.NET\Framework\v4.0.30319\InstallUtil.exe FileWatcherAlerts.exe
+
+:: Start / Stop / Remove
+net start FileWatcherAlerts
+net stop FileWatcherAlerts
+C:\Windows\Microsoft.NET\Framework\v4.0.30319\InstallUtil.exe /u FileWatcherAlerts.exe
+```
+
+The service runs as **LocalSystem** by default. To change the account, edit `ProjectInstaller.cs` or configure it via `services.msc` after installation. The service starts automatically on boot (`ServiceStartMode.Automatic`).
 
 ## Configuration (App.config)
 
@@ -103,6 +118,7 @@ All settings live in `FileWatcherAlerts/App.config`:
 ## Architecture Notes
 
 - **No persistent state**: Tracking is in-memory only. On restart, already-stable files will be re-detected and re-alerted on the first poll cycle. This is acceptable for v1.
+- **Dual-mode execution**: `Program.Main` checks `Environment.UserInteractive` — if true, runs as a console app with Ctrl+C shutdown; if false, runs via `ServiceBase.Run` as a Windows Service.
 - **Single-threaded polling**: The main loop polls directories sequentially. For environments with many slow network paths, a future enhancement could poll directories in parallel.
 - **No FileSystemWatcher**: Deliberate design decision. FSW relies on `ReadDirectoryChangesW` which does not reliably propagate over SMB/CIFS to NAS devices.
 
@@ -110,6 +126,8 @@ All settings live in `FileWatcherAlerts/App.config`:
 
 None beyond .NET Framework 4.8 BCL:
 - `System.Configuration` — custom config sections
+- `System.Configuration.Install` — InstallUtil service installer
+- `System.ServiceProcess` — Windows Service support (ServiceBase)
 - `System.Net.Mail` — SMTP email sending
 - `System.Diagnostics` — trace-based logging
 - `System.IO` — file enumeration and metadata
