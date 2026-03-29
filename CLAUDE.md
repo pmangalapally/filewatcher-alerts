@@ -11,25 +11,32 @@ Repository: `pmangalapally/filewatcher-alerts`
 ```
 filewatcher-alerts/
 ├── CLAUDE.md                              # AI assistant guidelines (this file)
+├── README.md                              # User-facing documentation
 ├── FileWatcherAlerts.sln                  # Visual Studio solution file
-└── FileWatcherAlerts/                     # Main project
-    ├── FileWatcherAlerts.csproj           # Project file (.NET Framework 4.8)
-    ├── App.config                         # Application configuration (directories, SMTP, polling)
-    ├── Program.cs                         # Entry point — detects console vs service mode
-    ├── FileWatcherService.cs              # ServiceBase implementation + console runner
-    ├── ProjectInstaller.cs                # InstallUtil installer (service name, account, start type)
-    ├── Configuration/
-    │   ├── WatcherConfigSection.cs        # Custom ConfigurationSection + SmtpElement
-    │   ├── WatchedDirectoryElement.cs     # Per-directory config (path, pattern, stability, recipients)
-    │   └── WatchedDirectoryCollection.cs  # Collection of WatchedDirectoryElement
-    ├── Monitoring/
-    │   ├── TrackedFile.cs                 # Data class for a file being tracked
-    │   ├── StabilityTracker.cs            # In-memory dictionary tracking file stability state
-    │   └── FilePoller.cs                  # Orchestrates one polling cycle across all directories
-    ├── Alerting/
-    │   └── EmailAlertSender.cs            # Sends email alerts via System.Net.Mail.SmtpClient
-    └── Logging/
-        └── Log.cs                         # Static logging helper (Trace + Console)
+├── FileWatcherAlerts/                     # Main project
+│   ├── FileWatcherAlerts.csproj           # Project file (.NET Framework 4.8)
+│   ├── App.config                         # Application configuration (directories, SMTP, polling)
+│   ├── Program.cs                         # Entry point — detects console vs service mode
+│   ├── FileWatcherService.cs              # ServiceBase implementation + console runner
+│   ├── ProjectInstaller.cs                # InstallUtil installer (service name, account, start type)
+│   ├── Configuration/
+│   │   ├── WatcherConfigSection.cs        # Custom ConfigurationSection + SmtpElement
+│   │   ├── WatchedDirectoryElement.cs     # Per-directory config (path, pattern, stability, recipients)
+│   │   └── WatchedDirectoryCollection.cs  # Collection of WatchedDirectoryElement
+│   ├── Monitoring/
+│   │   ├── TrackedFile.cs                 # Data class for a file being tracked
+│   │   ├── StabilityTracker.cs            # In-memory dictionary tracking file stability state
+│   │   └── FilePoller.cs                  # Orchestrates one polling cycle across all directories
+│   ├── Alerting/
+│   │   └── EmailAlertSender.cs            # Sends email alerts via System.Net.Mail.SmtpClient
+│   └── Logging/
+│       └── Log.cs                         # Static logging helper (Trace + Console)
+└── FileWatcherAlerts.Tests/               # Unit tests (MSTest)
+    ├── FileWatcherAlerts.Tests.csproj
+    ├── packages.config
+    ├── StabilityTrackerTests.cs           # Core stability logic tests (14 tests)
+    ├── TrackedFileTests.cs                # Data class property tests (4 tests)
+    └── FilePollerTests.cs                 # Integration tests with real temp files (5 tests)
 ```
 
 ## How It Works
@@ -39,11 +46,14 @@ filewatcher-alerts/
 3. **Alerting**: `EmailAlertSender` sends a plain-text email listing all newly stable files to the configured recipients for that directory.
 4. **Purging**: Files that disappear between polls are removed from tracking. If a file reappears, it starts a fresh stability clock and can trigger a new alert.
 
-## Build & Run
+## Build, Test & Run
 
 ```bash
 # Build (Visual Studio or MSBuild)
 msbuild FileWatcherAlerts.sln /p:Configuration=Release
+
+# Run tests
+vstest.console.exe FileWatcherAlerts.Tests\bin\Debug\FileWatcherAlerts.Tests.dll
 
 # Run as console (for development/debugging)
 FileWatcherAlerts\bin\Release\FileWatcherAlerts.exe
@@ -98,7 +108,8 @@ All settings live in `FileWatcherAlerts/App.config`:
 - **Minimal changes:** Only change what is necessary; avoid unrelated refactoring
 - **No speculative code:** Do not add features, abstractions, or error handling beyond what is requested
 - **Security first:** Never introduce path traversal or injection vulnerabilities — this tool operates on filesystem paths from configuration
-- **.NET Framework idioms:** Use `System.Configuration` for config, `System.Net.Mail` for email, `System.Diagnostics.Trace` for logging. No NuGet packages — the project is dependency-free by design.
+- **.NET Framework idioms:** Use `System.Configuration` for config, `System.Net.Mail` for email, `System.Diagnostics.Trace` for logging. No NuGet packages in the main project.
+- **Tests:** Unit tests use MSTest (`MSTest.TestFramework` NuGet). Add tests for new logic in `FileWatcherAlerts.Tests`. Tests that need filesystem access should use temp directories with cleanup in `[TestCleanup]`.
 
 ### Code Style
 
