@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-**filewatcher-alerts** is a .NET Framework 4.7.2 console application that monitors Windows shared directories (UNC paths) and NAS folders for file availability. It polls configured directories on a timer, tracks file stability (file present and unchanged for a configurable duration), and sends email alerts when files become stable.
+**filewatcher-alerts** is a .NET Framework 4.8 console application that monitors Windows shared directories (UNC paths) and NAS folders for file availability. It polls configured directories on a timer, tracks file stability (file present and unchanged for a configurable duration), and sends email alerts when files become stable.
 
 Repository: `pmangalapally/filewatcher-alerts`
 
@@ -13,7 +13,7 @@ filewatcher-alerts/
 ├── CLAUDE.md                              # AI assistant guidelines (this file)
 ├── FileWatcherAlerts.sln                  # Visual Studio solution file
 └── FileWatcherAlerts/                     # Main project
-    ├── FileWatcherAlerts.csproj           # Project file (.NET Framework 4.7.2)
+    ├── FileWatcherAlerts.csproj           # Project file (.NET Framework 4.8)
     ├── App.config                         # Application configuration (directories, SMTP, polling)
     ├── Program.cs                         # Entry point — config loading, polling loop, shutdown
     ├── Configuration/
@@ -87,7 +87,7 @@ All settings live in `FileWatcherAlerts/App.config`:
 
 ### Code Style
 
-- C# with .NET Framework 4.7.2 conventions
+- C# with .NET Framework 4.8 conventions
 - `var` for obviously-typed local variables; explicit types when the type isn't clear from context
 - Braces on new lines (Allman style)
 - `StringComparer.OrdinalIgnoreCase` for all file path comparisons
@@ -108,7 +108,7 @@ All settings live in `FileWatcherAlerts/App.config`:
 
 ## Dependencies
 
-None beyond .NET Framework 4.7.2 BCL:
+None beyond .NET Framework 4.8 BCL:
 - `System.Configuration` — custom config sections
 - `System.Net.Mail` — SMTP email sending
 - `System.Diagnostics` — trace-based logging
